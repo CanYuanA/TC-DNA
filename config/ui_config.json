@@ -55,7 +55,7 @@
         }
       ]
     },
-    "fei_qiang_test":{
+    "test":{
       "name": "飞枪设置测试用",
       "elements": [
         {

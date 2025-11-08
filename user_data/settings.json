@@ -16,5 +16,9 @@
     "select_option": "",
     "adjust_value": 50,
     "input_text": ""
+  },
+  "test": {
+    "重蓄时间": "250",
+    "间隔时间": "650"
   }
 }

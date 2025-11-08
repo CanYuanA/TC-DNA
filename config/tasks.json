@@ -4,7 +4,7 @@
       "name": "测试任务",
       "description": "仅供测试使用",
       "icon": "🧪",
-      "script_file": "task_template copy.py",
+      "script_file": "test.py",
       "category": "测试任务",
       "enabled": true
     },
