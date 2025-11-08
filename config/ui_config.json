@@ -1,0 +1,135 @@
+{
+  "app_title": "游戏脚本控制面板",
+  "window_size": {
+    "width": 800,
+    "height": 600
+  },
+  "tabs": {
+    "通用设置": {
+      "name": "通用设置",
+      "elements": [
+        {
+          "type":"label",
+          "text":"通用设置",
+          "font_size":14,
+          "font_weight":"bold"
+        },
+        {
+          "type":"entry",
+          "label":"捕获窗口标题",
+          "var_name":"捕获窗口标题",
+          "default":"二重螺旋  ",
+          "width":30
+        },
+        {
+          "type":"entry",
+          "label":"脚本热键",
+          "var_name":"脚本热键",
+          "default":"HOME",
+          "width":20
+        }
+      ]
+    },
+    "特殊设置":{
+      "name": "特殊设置",
+      "elements": [
+        {
+          "type": "label",
+          "text": "飞枪设置",
+          "font_size": 14,
+          "font_weight": "bold"
+        },
+        {
+          "type": "entry",
+          "label": "重蓄时间",
+          "var_name": "重蓄时间",
+          "default": "250",
+          "width": 20
+        },
+        {
+          "type": "entry",
+          "label": "间隔时间",
+          "var_name": "间隔时间",
+          "default": "650",
+          "width": 20
+        }
+      ]
+    },
+    "fei_qiang_test":{
+      "name": "飞枪设置测试用",
+      "elements": [
+        {
+          "type": "label",
+          "text": "飞枪设置",
+          "font_size": 14,
+          "font_weight": "bold"
+        },
+        {
+          "type": "entry",
+          "label": "重蓄时间",
+          "var_name": "重蓄时间",
+          "default": "250",
+          "width": 20
+        },
+        {
+          "type": "entry",
+          "label": "间隔时间",
+          "var_name": "间隔时间",
+          "default": "650",
+          "width": 20
+        }
+      ]
+    },
+    "UI元素模板":{
+      "name": "UI元素模板",
+      "elements": [
+        {
+          "type": "label",
+          "text": "这是一个UI元素模板",
+          "font_size": 12,
+          "font_weight": "normal"
+        },
+        {
+          "type": "button",
+          "text": "点击我",
+          "command": "template_command",
+          "width": 15
+        },
+        {
+          "type": "checkbox",
+          "label": "选项1",
+          "var_name": "option_1",
+          "default": false
+        },
+        {
+          "type": "combobox",
+          "label": "选择项",
+          "var_name": "select_option",
+          "values": ["选项A", "选项B", "选项C"],
+          "default": "选项A"
+        },
+        {
+          "type": "scale",
+          "label": "调整值",
+          "var_name": "adjust_value",
+          "from": 0,
+          "to": 100,
+          "default": 50
+        },
+        {
+          "type": "entry",
+          "label": "输入文本",
+          "var_name": "input_text",
+          "default": "",
+          "width": 30
+        },
+        {
+          "type": "label",
+          "text": "结束",
+          "font_size": 12,
+          "font_weight": "normal"
+        }
+      ]
+    }
+  }
+}

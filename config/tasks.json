@@ -1,0 +1,36 @@
+{
+  "tasks": {
+    "test": {
+      "name": "测试任务",
+      "description": "仅供测试使用",
+      "icon": "🧪",
+      "script_file": "task_template copy.py",
+      "category": "测试任务",
+      "enabled": true
+    },
+    "test_V2": {
+      "name": "测试任务V2",
+      "description": "仅供测试使用",
+      "icon": "🧪",
+      "script_file": "task_template copy.py",
+      "category": "测试任务",
+      "enabled": true
+    },
+    "test_notable": {
+      "name": "测试任务（不可用）",
+      "description": "仅供测试使用",
+      "icon": "🧪",
+      "script_file": "test.py",
+      "category": "测试任务",
+      "enabled": false
+    }
+  },
+  "categories": ["通用任务", "测试任务"],
+  "default_category": "通用任务",
+  "ui": {
+    "show_categories": true,
+    "show_icons": true,
+    "show_descriptions": true,
+    "compact_mode": false
+  }
+}
