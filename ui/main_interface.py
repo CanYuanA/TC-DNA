@@ -381,6 +381,18 @@ class MainInterface:
                 # 将窗口信息保存到全局变量
                 set_global('target_window', window_info, notify=True)
 
+                # 初始化OCR模型
+                log_info("正在初始化OCR模型...")
+                try:
+                    from utils.image import get_image_manager
+                    image_manager = get_image_manager()
+                    if image_manager.ocr_recognition.initialize():
+                        log_info("OCR模型初始化成功")
+                    else:
+                        log_warning("OCR模型初始化失败，但继续初始化其他组件")
+                except Exception as ocr_e:
+                    log_warning(f"OCR模型初始化失败: {ocr_e}")
+
                 # 更新状态
                 self.status_label.configure(text="● 已初始化", text_color='#4CAF50')
                 set_global('initialized', True, notify=False)

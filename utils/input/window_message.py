@@ -145,17 +145,17 @@ class WindowMessage:
             # 左键按下
             WindowMessage.send_message(hwnd, win32con.WM_LBUTTONDOWN, WindowMessage.MOUSE_LEFT_DOWN, lparam)
             # 短暂延迟后释放
-            time.sleep(0.001)
+            time.sleep(0.01)
             return WindowMessage.send_message(hwnd, win32con.WM_LBUTTONUP, WindowMessage.MOUSE_LEFT_UP, lparam)
         elif button.lower() == "right":
             # 右键按下
             WindowMessage.send_message(hwnd, win32con.WM_RBUTTONDOWN, WindowMessage.MOUSE_RIGHT_DOWN, lparam)
-            time.sleep(0.001)
+            time.sleep(0.01)
             return WindowMessage.send_message(hwnd, win32con.WM_RBUTTONUP, WindowMessage.MOUSE_RIGHT_UP, lparam)
         elif button.lower() == "middle":
             # 中键按下
             WindowMessage.send_message(hwnd, win32con.WM_MBUTTONDOWN, WindowMessage.MOUSE_MIDDLE_DOWN, lparam)
-            time.sleep(0.001)
+            time.sleep(0.01)
             return WindowMessage.send_message(hwnd, win32con.WM_MBUTTONUP, WindowMessage.MOUSE_MIDDLE_UP, lparam)
         else:
             raise ValueError(f"未知的鼠标按键: {button}")

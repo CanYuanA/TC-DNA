@@ -67,6 +67,30 @@ from .input import (
     build_mouse_lparam
 )
 
+# 导入图像处理
+from .image import (
+    get_image_manager,
+    capture_window,
+    capture_window_by_title,
+    ocr_text,
+    ocr_contains_text,
+    find_template,
+    find_all_templates,
+    # 基于目标窗口的便捷函数
+    capture_screenshot,
+    ocr_capture,
+    find_text_in_window,
+    find_template_in_window,
+    is_text_visible,
+    is_template_visible,
+    wait_for_text,
+    wait_for_template,
+    WindowCapture,
+    OCRRecognition,
+    TemplateMatching,
+    ImageManager
+)
+
 # 导入管理功能
 from .admin import is_admin
 
@@ -134,6 +158,28 @@ __all__ = [
     # 工具函数
     'build_key_lparam',
     'build_mouse_lparam',
+
+    # 图像处理
+    'get_image_manager',
+    'capture_window',
+    'capture_window_by_title',
+    'ocr_text',
+    'ocr_contains_text',
+    'find_template',
+    'find_all_templates',
+    # 基于目标窗口的便捷函数
+    'capture_screenshot',
+    'ocr_capture',
+    'find_text_in_window',
+    'find_template_in_window',
+    'is_text_visible',
+    'is_template_visible',
+    'wait_for_text',
+    'wait_for_template',
+    'WindowCapture',
+    'OCRRecognition',
+    'TemplateMatching',
+    'ImageManager',
 
     # 管理功能
     'is_admin'

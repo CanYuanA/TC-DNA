@@ -14,6 +14,8 @@ import time
 from typing import Dict, Any
 from utils.global_manager import log_info, log_warning, log_error, log_debug, get_global
 from utils.input import get_input_manager
+from utils.image import get_image_manager
+from utils.window import get_window_manager
 
 
 class TaskScript:
@@ -29,6 +31,8 @@ class TaskScript:
         self.settings = settings
         self.running = False
         self.input_manager = get_input_manager()
+        self.image_manager = get_image_manager()
+        self.window_manager = get_window_manager()
 
         # 从 settings 中获取用户配置参数
         # 例如：self.param_name = settings.get('param_name', default_value)
@@ -59,9 +63,26 @@ class TaskScript:
             while self.running:
                 # 执行你的任务代码
                 # 例如：模拟任务执行
-                self.input_manager.press_mouse_precisely(0, 0, 'left', duration=recharge_time)
-                time.sleep(interval_time)
-                log_info("任务运行中...")
+                # time.sleep(interval_time)
+                # log_info("任务运行中...")
+
+                # 测试图像截取
+                log_info("开始截图测试...")
+                from utils.image.window_capture import CaptureRegion
+
+                screenshot = self.image_manager.capture_screenshot(CaptureRegion(2152-1920,278,60,40))
+                import cv2
+                cv2.imshow("screenshot", screenshot)
+                cv2.waitKey(0)
+                cv2.destroyAllWindows()
+                r = self.image_manager.ocr_recognition.recognize_text(screenshot)
+                print(r)
+                for item in r:
+                    log_info(f"OCR识别到文字: {item.text} (置信度: {item.confidence:.2f})")
+                    self.input_manager.click(item.center[0]+2152-1920, item.center[1]+278)
+
+
+                break  # 测试完成，退出循环
 
             return True
 
