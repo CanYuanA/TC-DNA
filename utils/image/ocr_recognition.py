@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 from typing import List, Dict, Optional, Union, Any
 from dataclasses import dataclass
-import paddleocr
+from rapidocr import RapidOCR, EngineType, LangDet, LangRec, ModelType, OCRVersion
 
 @dataclass
 class OCRResult:
@@ -20,16 +20,10 @@ class OCRResult:
 class OCRRecognition:
     """OCR文字识别类"""
 
-    def __init__(self, use_gpu: bool = False, lang: str = 'ch'):
+    def __init__(self):
         """
         初始化OCR识别器
-
-        Args:
-            use_gpu: 是否使用GPU加速
-            lang: 识别语言 ('ch'中文, 'en'英文, 'chinese_cht'繁体中文等)
         """
-        self.use_gpu = use_gpu
-        self.lang = lang
         self.ocr = None
         self.is_initialized = False
 
@@ -45,11 +39,15 @@ class OCRRecognition:
 
         try:
             # 使用官方推荐的PaddleOCR初始化方式
-            self.ocr = paddleocr.PaddleOCR(
-                use_doc_orientation_classify=False,
-                use_doc_unwarping=False,
-                use_textline_orientation=False
-            )
+            self.ocr = RapidOCR(params={
+                "Det.engine_type": EngineType.ONNXRUNTIME,
+                "Det.lang_type": LangDet.CH,
+                "Det.model_type": ModelType.MOBILE,
+                "Det.ocr_version": OCRVersion.PPOCRV5,
+                "Rec.engine_type": EngineType.ONNXRUNTIME,
+                "Rec.lang_type": LangRec.CH,
+                "Rec.model_type": ModelType.MOBILE,
+                "Rec.ocr_version": OCRVersion.PPOCRV5,})
             self.is_initialized = True
             return True
         except Exception as e:
@@ -85,12 +83,15 @@ class OCRRecognition:
 
         return img_rgb
 
-    def recognize_text(self, image: Union[np.ndarray, str]) -> List[OCRResult]:
+    def recognize_text(self, image: Union[np.ndarray, str], mode: str = "detect_recognize") -> List[OCRResult]:
         """
         识别图像中的所有文字
 
         Args:
             image: 图像（numpy数组或文件路径）
+            mode: 识别模式
+                - "detect_recognize": 检测+识别（use_det=True, use_cls=True, use_rec=True）
+                - "recognize_only": 仅识别（use_det=False, use_cls=False, use_rec=True）
 
         Returns:
             OCRResult列表，每个结果包含文字、置信度、坐标等信息
@@ -101,44 +102,98 @@ class OCRRecognition:
 
         try:
             # 预处理图像
-            img_rgb = self._preprocess_image(image)
+            img = self._preprocess_image(image)
 
-            # 使用新API进行OCR识别
-            result = self.ocr.predict(img_rgb)
+            # 根据模式选择参数
+            if mode == "recognize_only":
+                use_det, use_cls, use_rec = False, False, True
+            else:  # detect_recognize
+                use_det, use_cls, use_rec = True, True, True
+
+            # 使用RapidOCR进行识别
+            result = self.ocr(img, use_det=use_det, use_cls=use_cls, use_rec=use_rec)
 
             if not result:
                 return []
 
+            # 解析RapidOCR结果
             ocr_results = []
-            for res in result:
-                # 解析识别结果
-                rec_texts = res.get('rec_texts', [])
-                rec_scores = res.get('rec_scores', [])
-                rec_polys = res.get('rec_polys', [])
 
-                for i, text in enumerate(rec_texts):
-                    if i < len(rec_scores) and i < len(rec_polys):
-                        confidence = float(rec_scores[i])
-                        bbox_coords = rec_polys[i].tolist()
+            # RapidOCR返回类型判断
+            if hasattr(result, 'txts') and result.txts:  # RapidOCROutput类型
+                boxes = getattr(result, 'boxes', [])
+                txts = result.txts
+                scores = getattr(result, 'scores', [1.0] * len(txts))
+                elapse = getattr(result, 'elapse', 0.0)
 
-                        # 计算中心点
-                        x_coords = [point[0] for point in bbox_coords]
-                        y_coords = [point[1] for point in bbox_coords]
+                for i, (text, score, box) in enumerate(zip(txts, scores, boxes)):
+                    if not text.strip():
+                        continue
+
+                    # 计算中心点
+                    if len(box) >= 4:
+                        x_coords = [point[0] for point in box]
+                        y_coords = [point[1] for point in box]
                         center_x = int(sum(x_coords) / len(x_coords))
                         center_y = int(sum(y_coords) / len(y_coords))
+                        center = (center_x, center_y)
 
-                        ocr_results.append(OCRResult(
-                            text=text,
-                            confidence=confidence,
-                            bbox=bbox_coords,
-                            center=(center_x, center_y)
-                        ))
+                        # 确保bbox是列表格式
+                        bbox_coords = [point.tolist() if hasattr(point, 'tolist') else list(point) for point in box]
+                    else:
+                        center = (0, 0)
+                        bbox_coords = [[0, 0], [0, 0], [0, 0], [0, 0]]
+
+                    ocr_results.append(OCRResult(
+                        text=text,
+                        confidence=float(score),
+                        bbox=bbox_coords,
+                        center=center,
+                        rec_time=elapse
+                    ))
+
+            elif isinstance(result, list) and len(result) > 0:  # 兼容旧格式
+                for res in result:
+                    if isinstance(res, dict):
+                        rec_texts = res.get('rec_texts', [])
+                        rec_scores = res.get('rec_scores', [])
+                        rec_polys = res.get('rec_polys', [])
+
+                        for i, text in enumerate(rec_texts):
+                            if i < len(rec_scores) and i < len(rec_polys):
+                                confidence = float(rec_scores[i])
+                                bbox_coords = rec_polys[i].tolist() if hasattr(rec_polys[i], 'tolist') else rec_polys[i]
+
+                                # 计算中心点
+                                x_coords = [point[0] for point in bbox_coords]
+                                y_coords = [point[1] for point in bbox_coords]
+                                center_x = int(sum(x_coords) / len(x_coords))
+                                center_y = int(sum(y_coords) / len(y_coords))
+
+                                ocr_results.append(OCRResult(
+                                    text=text,
+                                    confidence=confidence,
+                                    bbox=bbox_coords,
+                                    center=(center_x, center_y)
+                                ))
 
             return ocr_results
 
         except Exception as e:
             print(f"OCR识别失败: {e}")
             return []
+
+    def recognize_only(self, image: Union[np.ndarray, str]) -> List[OCRResult]:
+        """
+        仅识别模式（无检测，适用于单行文字）
+
+        Args:
+            image: 图像（numpy数组或文件路径）
+
+        Returns:
+            OCRResult列表
+        """
+        return self.recognize_text(image, mode="recognize_only")
 
     def extract_text_only(self, image: Union[np.ndarray, str]) -> str:
         """
@@ -212,3 +267,84 @@ class OCRRecognition:
         """
         results = self.recognize_text(image)
         return [result for result in results if result.confidence >= confidence_threshold]
+
+    def batch_ocr(self, images: List[Union[np.ndarray, str]]) -> List[List[OCRResult]]:
+        """
+        批量OCR识别
+
+        Args:
+            images: 图像列表
+
+        Returns:
+            每张图像的OCR结果列表
+        """
+        results = []
+        for img in images:
+            ocr_results = self.recognize_text(img)
+            results.append(ocr_results)
+        return results
+
+    def get_text_with_coords(self, image: Union[np.ndarray, str],
+                           min_confidence: float = 0.7) -> List[tuple]:
+        """
+        获取文字和坐标对
+
+        Args:
+            image: 图像（numpy数组或文件路径）
+            min_confidence: 最小置信度
+
+        Returns:
+            [(文字, 坐标), ...] 列表
+        """
+        results = self.recognize_text(image)
+        text_coords = []
+
+        for result in results:
+            if result.confidence >= min_confidence:
+                text_coords.append((result.text, result.center))
+
+        return text_coords
+
+    def wait_for_text(self, image_getter, target_text: str, timeout: float = 5.0,
+                     check_interval: float = 0.5, confidence_threshold: float = 0.7) -> Optional[OCRResult]:
+        """
+        等待文字出现
+
+        Args:
+            image_getter: 获取图像的函数（每次检查时调用）
+            target_text: 要等待的文字
+            timeout: 超时时间（秒）
+            check_interval: 检查间隔（秒）
+            confidence_threshold: 置信度阈值
+
+        Returns:
+            找到的文字结果，超时返回None
+        """
+        import time
+        start_time = time.time()
+
+        while time.time() - start_time < timeout:
+            image = image_getter()
+            if image is not None:
+                result = self.find_text_location(image, target_text, confidence_threshold)
+                if result:
+                    return result
+            time.sleep(check_interval)
+
+        return None
+
+    def recognize_specific_area(self, image: Union[np.ndarray, str],
+                               region: tuple) -> List[OCRResult]:
+        """
+        识别图像特定区域的文字
+
+        Args:
+            image: 原始图像
+            region: 区域坐标 (x, y, width, height)
+
+        Returns:
+            指定区域的OCR结果
+        """
+        x, y, w, h = region
+        cropped = self._preprocess_image(image)[y:y+h, x:x+w]
+        return self.recognize_text(cropped)

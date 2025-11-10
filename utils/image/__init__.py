@@ -37,6 +37,11 @@ def ocr_text(image):
     ocr = OCRRecognition()
     return ocr.recognize_text(image)
 
+def ocr_text_only(image):
+    """快速OCR仅识别函数（无检测，适用于单行文字）"""
+    ocr = OCRRecognition()
+    return ocr.recognize_only(image)
+
 def ocr_contains_text(image, text):
     """检查图像中是否包含指定文字"""
     ocr = OCRRecognition()
@@ -62,6 +67,11 @@ def ocr_capture(region=None):
     """对目标窗口截图并进行OCR识别"""
     manager = get_image_manager()
     return manager.ocr_capture(region)
+
+def ocr_capture_only(region=None):
+    """对目标窗口截图并进行仅识别OCR（适用于单行文字）"""
+    manager = get_image_manager()
+    return manager.ocr_capture_only(region)
 
 def find_text_in_window(text, region=None):
     """在目标窗口中查找文字"""
@@ -106,12 +116,14 @@ __all__ = [
     'capture_window',
     'capture_window_by_title',
     'ocr_text',
+    'ocr_text_only',
     'ocr_contains_text',
     'find_template',
     'find_all_templates',
     # 基于目标窗口的便捷函数
     'capture_screenshot',
     'ocr_capture',
+    'ocr_capture_only',
     'find_text_in_window',
     'find_template_in_window',
     'is_text_visible',

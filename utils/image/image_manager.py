@@ -29,6 +29,15 @@ class ImageManager:
         self.use_gpu = use_gpu
         self.ocr_lang = ocr_lang
 
+    def get_ocr_stats(self) -> dict:
+        """
+        获取OCR识别统计信息
+
+        Returns:
+            统计信息字典
+        """
+        return self.ocr_recognition.get_recognition_stats()
+
     def _get_hwnd(self, window=None) -> Optional[int]:
         """获取窗口句柄"""
         if window is not None:
@@ -112,6 +121,25 @@ class ImageManager:
         # 第二步：OCR识别
         return self.ocr_recognition.recognize_text(image)
 
+    def capture_and_ocr_only(self, window=None, region: Optional[CaptureRegion] = None):
+        """
+        截取窗口并执行仅识别OCR（无检测，适用于单行文字）
+
+        Args:
+            window: 窗口对象或句柄，None使用默认目标窗口
+            region: 截取区域
+
+        Returns:
+            OCRResult列表
+        """
+        # 第一步：截图
+        image = self.capture_window_region(window, region)
+        if image is None:
+            return []
+
+        # 第二步：仅OCR识别（无检测）
+        return self.ocr_recognition.recognize_only(image)
+
     def capture_and_match(self, template: Union[np.ndarray, str], window=None,
                          region: Optional[CaptureRegion] = None, threshold: float = 0.8):
         """
@@ -159,6 +187,18 @@ class ImageManager:
             OCRResult列表
         """
         return self.capture_and_ocr(None, region)
+
+    def ocr_capture_only(self, region: Optional[CaptureRegion] = None):
+        """
+        快速OCR仅识别（使用默认目标窗口，适用于单行文字）
+
+        Args:
+            region: 截取区域，None表示整个客户区
+
+        Returns:
+            OCRResult列表
+        """
+        return self.capture_and_ocr_only(None, region)
 
     def find_text_in_window(self, text: str, region: Optional[CaptureRegion] = None):
         """
